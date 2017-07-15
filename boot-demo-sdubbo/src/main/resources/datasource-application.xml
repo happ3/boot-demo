@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans"  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"  
+    xmlns:context="http://www.springframework.org/schema/context"  
+    xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"  
+    xmlns:aop="http://www.springframework.org/schema/aop"  
+    xsi:schemaLocation="  
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd  
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">  
+
+    
+    
+    <context:property-placeholder location="classpath:application-dev.properties" /> 
+    
+    <bean id="masterDataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="${datasource.master.url}"/>
+        <property name="username" value="${datasource.master.username}"/>
+        <property name="password" value="${datasource.master.password}"/>
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="20"/>
+        <!-- 连接池中最少空闲maxIdle个连接 -->
+        <property name="minIdle" value="10"/>
+        <!-- 连接池激活的最大数据库连接总数。设为0表示无限制 -->
+        <property name="maxActive" value="300"/>
+        <!-- 最大建立连接等待时间，单位为 ms，如果超过此时间将接到异常。设为-1表示无限制 -->
+        <property name="maxWait" value="60000"/>
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <!-- 配置连接池中连接可空闲的时间(针对连接池中的连接对象.空闲超过这个时间则断开，直到连接池中的连接数到minIdle为止)，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <!-- 用来检测连接是否有效的sql，要求是一个查询语句 -->
+        <property name="validationQuery" value="SELECT 'x' FROM DUAL"/>
+        <!-- 建议配置为true，不影响性能，并且保证安全性 -->
+        <property name="testWhileIdle" value="true"/>
+        <!-- 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能 -->
+        <property name="testOnBorrow" value="false"/>
+        <!-- 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能 -->
+        <property name="testOnReturn" value="false"/>
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小(Oracle或mysql5.5及以上使用) -->
+        <property name="poolPreparedStatements" value="true"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="20"/>
+        <!-- 配置监控统计拦截的filters -->
+        <property name="filters" value="stat"/>
+        <!-- 配置关闭长时间不使用的连接 -->
+        <!-- 是否清理removeAbandonedTimeout秒没有使用的活动连接,清理后并没有放回连接池(针对未被close的活动连接) -->
+        <property name="removeAbandoned" value="true"/>
+        <!-- 活动连接的最大空闲时间,1800秒，也就是5分钟 -->
+        <property name="removeAbandonedTimeout" value="300"/>
+        <!-- 连接池收回空闲的活动连接时是否打印消息 -->
+        <property name="logAbandoned" value="true"/>
+    </bean>
+
+    <!--<bean id="slaveDataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <property name="driverClassName" value="${datasource.slave.drivername}"/>
+        <property name="url" value="${datasource.slave.url}"/>
+        <property name="username" value="${datasource.slave.username}"/>
+        <property name="password" value="${datasource.slave.password}"/>
+        &lt;!&ndash; 配置初始化大小、最小、最大 &ndash;&gt;
+        <property name="initialSize" value="20"/>
+        &lt;!&ndash; 连接池中最少空闲maxIdle个连接 &ndash;&gt;
+        <property name="minIdle" value="10"/>
+        &lt;!&ndash; 连接池激活的最大数据库连接总数。设为0表示无限制 &ndash;&gt;
+        <property name="maxActive" value="300"/>
+        &lt;!&ndash; 最大建立连接等待时间，单位为 ms，如果超过此时间将接到异常。设为-1表示无限制 &ndash;&gt;
+        <property name="maxWait" value="60000"/>
+        &lt;!&ndash; 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 &ndash;&gt;
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        &lt;!&ndash; 配置连接池中连接可空闲的时间(针对连接池中的连接对象.空闲超过这个时间则断开，直到连接池中的连接数到minIdle为止)，单位是毫秒 &ndash;&gt;
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        &lt;!&ndash; 用来检测连接是否有效的sql，要求是一个查询语句 &ndash;&gt;
+        <property name="validationQuery" value="SELECT 'x' FROM DUAL"/>
+        &lt;!&ndash; 建议配置为true，不影响性能，并且保证安全性 &ndash;&gt;
+        <property name="testWhileIdle" value="true"/>
+        &lt;!&ndash; 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能 &ndash;&gt;
+        <property name="testOnBorrow" value="false"/>
+        &lt;!&ndash; 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能 &ndash;&gt;
+        <property name="testOnReturn" value="false"/>
+        &lt;!&ndash; 打开PSCache，并且指定每个连接上PSCache的大小(Oracle或mysql5.5及以上使用) &ndash;&gt;
+        <property name="poolPreparedStatements" value="true"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="20"/>
+        &lt;!&ndash; 配置监控统计拦截的filters &ndash;&gt;
+        <property name="filters" value="stat"/>
+        &lt;!&ndash; 配置关闭长时间不使用的连接 &ndash;&gt;
+        &lt;!&ndash; 是否清理removeAbandonedTimeout秒没有使用的活动连接,清理后并没有放回连接池(针对未被close的活动连接) &ndash;&gt;
+        <property name="removeAbandoned" value="true"/>
+        &lt;!&ndash; 活动连接的最大空闲时间,1800秒，也就是30分钟 &ndash;&gt;
+        <property name="removeAbandonedTimeout" value="1800"/>
+        &lt;!&ndash; 连接池收回空闲的活动连接时是否打印消息 &ndash;&gt;
+        <property name="logAbandoned" value="true"/>
+    </bean>-->
+    <alias name="masterDataSource" alias="dataSource"/>
+
+    <!--<bean id="dataSource" class="cn.inspiry.rw.RoutingDataSource" primary="true">
+        <property name="targetDataSources">
+            <map key-type="java.lang.String">
+                &lt;!&ndash; write &ndash;&gt;
+                <entry key="master" value-ref="masterDataSource"/>
+                &lt;!&ndash; read &ndash;&gt;
+                <entry key="slave" value-ref="slaveDataSource"/>
+            </map>
+        </property>
+        <property name="defaultTargetDataSource" ref="masterDataSource"/>
+    </bean>-->
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="masterDataSource"/>
+    </bean>
+
+    <bean id="threadPoolTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <!-- 核心线程数，默认为1 -->
+        <property name="corePoolSize" value="4"/>
+        <!-- 最大线程数，默认为Integer.MAX_VALUE -->
+        <property name="maxPoolSize" value="8"/>
+        <!-- 队列最大长度，一般需要设置值>=notifyScheduledMainExecutor.maxNum；默认为Integer.MAX_VALUE -->
+        <property name="queueCapacity" value="10000"/>
+        <!-- 线程池维护线程所允许的空闲时间，默认为60s -->
+        <property name="keepAliveSeconds" value="60"/>
+        <!-- 线程池对拒绝任务（无线程可用）的处理策略，目前只支持AbortPolicy、CallerRunsPolicy；默认为后者 -->
+        <property name="rejectedExecutionHandler">
+            <!-- AbortPolicy:直接抛出java.util.concurrent.RejectedExecutionException异常 -->
+            <!-- CallerRunsPolicy:主线程直接执行该任务，执行完之后尝试添加下一个任务到线程池中，可以有效降低向线程池内添加任务的速度 -->
+            <!-- DiscardOldestPolicy:抛弃旧的任务、暂不支持；会导致被丢弃的任务无法再次被执行 -->
+            <!-- DiscardPolicy:抛弃当前任务、暂不支持；会导致被丢弃的任务无法再次被执行 -->
+            <bean class="java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy"/>
+        </property>
+    </bean>
+
+</beans>
